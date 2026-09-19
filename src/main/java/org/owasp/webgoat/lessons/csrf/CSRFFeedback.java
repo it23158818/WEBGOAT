@@ -54,16 +54,26 @@ public class CSRFFeedback implements AssignmentEndpoint {
     } catch (IOException e) {
       return failed(this).feedback(ExceptionUtils.getStackTrace(e)).build();
     }
-    boolean correctCSRF =
+    // Anti-CSRF Fix: Reject requests originating from external websites missing an Anti-CSRF token
+    boolean isCrossSiteRequest = hostOrRefererDifferentHost(request);
+    String csrfToken = request.getHeader("X-CSRF-TOKEN");
+    if (isCrossSiteRequest && (csrfToken == null || csrfToken.trim().isEmpty())) {
+      return failed(this)
+          .feedback("CSRF attack blocked: Request originated from an external website without a valid Anti-CSRF token.")
+          .build();
+    }
+
+    boolean isSameOrigin =
         requestContainsWebGoatCookie(request.getCookies())
-            && request.getContentType().contains(MediaType.TEXT_PLAIN_VALUE);
-    correctCSRF &= hostOrRefererDifferentHost(request);
-    if (correctCSRF) {
+            && request.getContentType().contains(MediaType.TEXT_PLAIN_VALUE)
+            && !isCrossSiteRequest;
+            
+    if (isSameOrigin) {
       String flag = UUID.randomUUID().toString();
       userSessionData.setValue("csrf-feedback", flag);
       return success(this).feedback("csrf-feedback-success").feedbackArgs(flag).build();
     }
-    return failed(this).build();
+    return failed(this).feedback("Request blocked due to invalid origin or missing CSRF protection.").build();
   }
 
   @PostMapping(path = "/csrf/feedback", produces = "application/json")
