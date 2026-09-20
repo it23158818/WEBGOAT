@@ -88,8 +88,9 @@ public class ForgedReviews implements AssignmentEndpoint {
     var reviews = userReviews.getOrDefault(username, new ArrayList<>());
     reviews.add(review);
     userReviews.put(username, reviews);
-    // short-circuit
-    if (validateReq == null || !validateReq.equals(weakAntiCSRF)) {
+    // short-circuit: validate anti-CSRF token on state-changing endpoint
+    String tokenToValidate = (validateReq != null) ? validateReq : request.getHeader("X-CSRF-TOKEN");
+    if (!isValidCsrfToken(tokenToValidate, weakAntiCSRF)) {
       return failed(this).feedback("csrf-you-forgot-something").build();
     }
     // we have the spoofed files
@@ -100,5 +101,9 @@ public class ForgedReviews implements AssignmentEndpoint {
           .feedback("csrf-review.success")
           .build(); // feedback("xss-stored-comment-failure")
     }
+  }
+
+  public static boolean isValidCsrfToken(String token, String expectedToken) {
+    return token != null && !token.trim().isEmpty() && token.equals(expectedToken);
   }
 }
