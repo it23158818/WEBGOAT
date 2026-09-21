@@ -37,7 +37,7 @@ public class CSRFFeedbackTest extends LessonTest {
   }
 
   @Test
-  public void csrfAttack() throws Exception {
+  public void csrfAttackShouldBeBlocked() throws Exception {
     mockMvc
         .perform(
             post("/csrf/feedback/message")
@@ -48,7 +48,7 @@ public class CSRFFeedbackTest extends LessonTest {
                 .content(
                     "{\"name\": \"Test\", \"email\": \"test1233@dfssdf.de\", \"subject\":"
                         + " \"service\", \"message\":\"dsaffd\"}"))
-        .andExpect(jsonPath("lessonCompleted", is(true)))
-        .andExpect(jsonPath("feedback", StringContains.containsString("the flag is: ")));
+        .andExpect(jsonPath("lessonCompleted", is(false)))
+        .andExpect(jsonPath("feedback", StringContains.containsString("CSRF attack blocked")));
   }
 }
