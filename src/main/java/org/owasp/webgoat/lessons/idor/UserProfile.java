@@ -72,6 +72,10 @@ public class UserProfile {
         + this.isAdmin;
   }
 
+  public boolean isOwner(String authUserId) {
+    return authUserId != null && authUserId.equals(this.userId);
+  }
+
   //
   public String getUserId() {
     return userId;
