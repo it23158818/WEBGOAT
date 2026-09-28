@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.owasp.encoder.Encode;
 import org.owasp.webgoat.container.CurrentUsername;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.container.assignments.AttackResult;
@@ -80,10 +81,15 @@ public class StoredXssComments implements AssignmentEndpoint {
     comment.setDateTime(LocalDateTime.now().format(fmt));
     comment.setUser(username);
 
+    String rawText = comment.getText();
+    if (rawText != null) {
+      comment.setText(Encode.forHtml(rawText));
+    }
+
     comments.add(comment);
     userComments.put(username, comments);
 
-    if (comment.getText().contains(phoneHomeString)) {
+    if (rawText != null && rawText.contains(phoneHomeString)) {
       return (success(this).feedback("xss-stored-comment-success").build());
     } else {
       return (failed(this).feedback("xss-stored-comment-failure").build());
