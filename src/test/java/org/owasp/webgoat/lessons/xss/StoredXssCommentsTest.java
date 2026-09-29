@@ -47,24 +47,12 @@ class StoredXssCommentsTest extends LessonTest {
      ... the isEncoded method will remain commented out as it will fail (because WebGoat isn't supposed to be secure)
   */
 
-  // Ensures it is vulnerable
+  // Ensures comments are properly HTML encoded to prevent Stored XSS
   @Test
-  public void isNotEncoded() throws Exception {
-    // do get to get comments after posting xss payload
+  public void isEncoded() throws Exception {
     ResultActions taintedResults =
         mockMvc.perform(MockMvcRequestBuilders.get("/CrossSiteScriptingStored/stored-xss"));
     MvcResult mvcResult = taintedResults.andReturn();
-    assert (mvcResult.getResponse().getContentAsString().contains("<script>console.warn"));
+    assert (mvcResult.getResponse().getContentAsString().contains("&lt;script&gt;"));
   }
-
-  // Could be used to test an encoding solution ... commented out so build will pass. Uncommenting
-  // will fail build, but leaving in as positive Security Unit Test
-  //    @Test
-  //    public void isEncoded() throws Exception {
-  //        //do get to get comments after posting xss payload
-  //        ResultActions taintedResults =
-  // mockMvc.perform(MockMvcRequestBuilders.get("/CrossSiteScripting/stored-xss"));
-  //
-  // taintedResults.andExpect(jsonPath("$[0].text",CoreMatchers.is(CoreMatchers.containsString("&lt;scriptgt;"))));
-  //    }
 }
