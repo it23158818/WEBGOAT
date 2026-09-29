@@ -1,0 +1,94 @@
+name: "Dependency / Software Composition Scanning"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  owasp-dependency-check:
+    name: OWASP Dependency-Check (SCA)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: ./.github/actions/java-setup
+        with:
+          cache: 'maven'
+
+      - name: Run OWASP Dependency-Check Scan
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'webgoat'
+          path: '.'
+          format: 'ALL'
+          args: >-
+            --failOnCVSS 7
+            --enableRetired
+            --suppression config/dependency-check-suppression.xml
+        continue-on-error: true
+
+      - name: Upload OWASP Dependency-Check SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'reports/dependency-check-report.sarif'
+        continue-on-error: true
+
+      - name: Upload OWASP Dependency-Check Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-check-reports
+          path: 'reports/'
+
+  osv-dependency-scanner:
+    name: Google OSV Dependency Scanner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run OSV-Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@v1.9.0
+        with:
+          scan-args: |-
+            --sarif
+            --output=osv-results.sarif
+            --lockfile=pom.xml
+            --recursive
+            .
+        continue-on-error: true
+
+      - name: Upload OSV Scan SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: osv-results.sarif
+        continue-on-error: true
+
+  dependency-review:
+    name: GitHub Dependency Review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Review Scan
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          comment-on-pr: true
+        continue-on-error: true
