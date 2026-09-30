@@ -1,13 +1,5 @@
 # WebGoat - Security Remediations & DevSecOps CI/CD Pipelines
 
-[![SAST](https://github.com/WebGoat/WebGoat/actions/workflows/sast.yml/badge.svg)](https://github.com/WebGoat/WebGoat/actions/workflows/sast.yml)
-[![Dependency / SCA](https://github.com/WebGoat/WebGoat/actions/workflows/dependency-scanning.yml/badge.svg)](https://github.com/WebGoat/WebGoat/actions/workflows/dependency-scanning.yml)
-[![Gitleaks](https://github.com/WebGoat/WebGoat/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/WebGoat/WebGoat/actions/workflows/gitleaks.yml)
-[![Trivy](https://github.com/WebGoat/WebGoat/actions/workflows/trivy.yml/badge.svg)](https://github.com/WebGoat/WebGoat/actions/workflows/trivy.yml)
-[![java-jdk](https://img.shields.io/badge/java%20jdk-25-green.svg)](https://jdk.java.net/)
-
----
-
 ## 📌 Project Overview
 
 This repository contains the source code, security vulnerability fixes, unit test coverage, and automated DevSecOps security pipelines for **WebGoat** (OWASP).
